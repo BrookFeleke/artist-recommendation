@@ -11,7 +11,7 @@ var refreshToken;
 var expiresIn;
 
 const searchArtist = (artist) => {
-    var artistId 
+  var artistId;
   axios({
     method: "get", //you can set what request you want to be
     url: "https://api.spotify.com/v1/search?",
@@ -32,7 +32,6 @@ const searchArtist = (artist) => {
     .catch((err) => {
       console.log(err.message);
     });
-    
 };
 const checkCode = () => {
   // form.style.display = 'block'
@@ -41,6 +40,10 @@ const checkCode = () => {
   const url = new URL(url_string);
   const code = url.searchParams.get("code");
   console.log(code);
+  if (!code) {
+    window.location.href =
+      "https://accounts.spotify.com/authorize?client_id=1296a2ee006f4ca5bff6fe8a3cc31b1d&response_type=code&redirect_uri=http://localhost:5500/client/index.html";
+  }
 
   axios
     .post("http://localhost:3000/login", {
@@ -63,8 +66,16 @@ const checkCode = () => {
 search.addEventListener("click", (evt) => {
   evt.preventDefault();
   if (input.value) {
-    const artist = input.value
-    artist.replace(" ","")
+    const artist = input.value;
+    artist.replace(" ", "");
+    searchArtist(artist);
+  }
+});
+search.addEventListener("enter", (evt) => {
+  evt.preventDefault();
+  if (input.value) {
+    const artist = input.value;
+    artist.replace(" ", "");
     searchArtist(artist);
   }
 });
