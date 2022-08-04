@@ -5,10 +5,23 @@ const login = document.querySelector("#login");
 const form = document.querySelector("#form");
 const search = document.querySelector("#search");
 const input = document.querySelector("#input");
-
+const artistsContainer = document.querySelector("#artists-container");
 var accessToken;
 var refreshToken;
 var expiresIn;
+var relatedArtists = [];
+
+const insertRelatedArtists = (artists) => {
+  artistsContainer.innerHTML = "";
+  artists.forEach((artist) => {
+    const content = `<div class="m-2 flex min-w-max flex-col space-y-2 bg-gray-600 bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20 p-4 rounded-md hover:bg-gray-500 hover:bg-clip-padding hover:backdrop-filter hover:backdrop-blur-md hover:bg-opacity-20" >
+    <img src= ${artist.image} class="h-48 w-48 rounded-md"></img>
+    <h2 class=" text-gray-300 font-bold">${artist.name}</h2>
+    <p class="text-gray-500">${artist.followers}</p>
+  </div>`;
+    artistsContainer.innerHTML += content;
+  });
+};
 
 const searchArtist = (artist) => {
   var artistId;
@@ -26,8 +39,47 @@ const searchArtist = (artist) => {
     },
   })
     .then((response) => {
-      console.log(response);
+      //   console.log(response);
       artistId = response.data.artists.items[0].id;
+      console.log(artistId);
+      axios({
+        method: "get", //you can set what request you want to be
+        url:
+          "https://api.spotify.com/v1/artists/" + artistId + "/related-artists",
+        headers: {
+          Accept: " application/json",
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + accessToken,
+        },
+      })
+        .then((response) => {
+            var responseArray = response.data.artists
+            console.log(responseArray.length)
+            responseArray.forEach((artist, index) => {
+            if(artist.images[1]) return;
+            else  responseArray.splice(index, 1)
+          })
+          console.log(responseArray.length)
+
+          relatedArtists = [];
+          relatedArtists = responseArray.map((artist) => {
+          if(artist.images[1].url){
+
+              const newArtist = {
+                name: artist.name,
+                image: artist.images[1].url,
+                followers: artist.followers.total,
+              };
+              return newArtist;
+          } else return;
+          });
+          console.log(relatedArtists);
+          insertRelatedArtists(relatedArtists);
+          //   console.log(artistId);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     })
     .catch((err) => {
       console.log(err.message);
@@ -61,6 +113,7 @@ const checkCode = () => {
       window.location.href =
         "https://accounts.spotify.com/authorize?client_id=1296a2ee006f4ca5bff6fe8a3cc31b1d&response_type=code&redirect_uri=http://localhost:5500/client/index.html";
     });
+  window.history.pushState({}, null, "/");
 };
 
 search.addEventListener("click", (evt) => {
