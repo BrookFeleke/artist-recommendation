@@ -1,5 +1,5 @@
-// const { get } = require("http");
 
+// DOM elements
 const body = document.querySelector("#body");
 const login = document.querySelector("#login");
 const form = document.querySelector("#form");
@@ -9,23 +9,26 @@ const artistsContainer = document.querySelector("#artists-container");
 const errorContainer = document.querySelector("#error-container");
 const errorMessage = document.querySelector("#error-message");
 
+// Global Variables
 var accessToken;
 var refreshToken;
 var expiresIn;
 var relatedArtists = [];
 
+// Displays message when there are no artists available
 const displayMessage = (msg) => {
   const message = ` <div id="error-container" class="container w-full h-full mx-auto p-36 bg-gray-700 rounded-lg flex align-center justify-center items-center" >
   <p class="text-gray-300 md:whitespace-nowrap font-semibold" id="error-message">${msg}</p>
   </div>`;
-  console.log("I got called");
+
   if (relatedArtists.length <= 0) {
-    console.log("But i did not get in here");
     artistsContainer.innerHTML = "";
     artistsContainer.innerHTML += message;
     // errorContainer.style.display = "flex";
   }
 };
+
+// Displays artists after they have been fetched
 const insertRelatedArtists = (artists) => {
   artistsContainer.innerHTML = "";
   artists.forEach((artist) => {
@@ -38,6 +41,7 @@ const insertRelatedArtists = (artists) => {
   });
 };
 
+// searches for artists and populates @relatedArtists array
 const searchArtist = (artist) => {
   var artistId;
   axios({
@@ -54,17 +58,14 @@ const searchArtist = (artist) => {
     },
   })
     .then((response) => {
-      //   console.log(response);
-      if (!response.data.artists.items) console.log("I am not in there");
       if (response.data.artists.items.length <= 0) {
-        console.log("I am in here");
         relatedArtists = [];
-        console.log(relatedArtists);
+
         displayMessage("no artists found with that name");
         return;
       }
       artistId = response.data.artists.items[0].id;
-      console.log(artistId);
+
       axios({
         method: "get", //you can set what request you want to be
         url:
@@ -77,12 +78,11 @@ const searchArtist = (artist) => {
       })
         .then((response) => {
           var responseArray = response.data.artists;
-          console.log(responseArray.length);
+
           responseArray.forEach((artist, index) => {
             if (artist.images[1]) return;
             else responseArray.splice(index, 1);
           });
-          console.log(responseArray.length);
 
           relatedArtists = [];
           relatedArtists = responseArray.map((artist) => {
@@ -95,9 +95,8 @@ const searchArtist = (artist) => {
               return newArtist;
             } else return;
           });
-          console.log(relatedArtists);
+
           insertRelatedArtists(relatedArtists);
-          //   console.log(artistId);
         })
         .catch((err) => {
           console.log(err);
@@ -107,6 +106,8 @@ const searchArtist = (artist) => {
       console.log(err.message);
     });
 };
+
+// run on load of webstie to get access Tokens
 const checkCode = () => {
   // form.style.display = 'block'
   console.log("loaded");
@@ -138,6 +139,7 @@ const checkCode = () => {
   window.history.pushState({}, null, "/");
 };
 
+// Event listeners
 search.addEventListener("click", (event) => {
   event.preventDefault();
   if (input.value) {
@@ -155,5 +157,7 @@ form.addEventListener("submit", (event) => {
     searchArtist(artist);
   }
 });
+
+
 displayMessage("Discover new artitsts");
 body.onLoad = checkCode();
