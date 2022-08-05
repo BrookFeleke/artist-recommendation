@@ -6,11 +6,26 @@ const form = document.querySelector("#form");
 const search = document.querySelector("#search");
 const input = document.querySelector("#input");
 const artistsContainer = document.querySelector("#artists-container");
+const errorContainer = document.querySelector("#error-container");
+const errorMessage = document.querySelector("#error-message");
+
 var accessToken;
 var refreshToken;
 var expiresIn;
 var relatedArtists = [];
 
+const displayMessage = (msg) => {
+  const message = ` <div id="error-container" class="container w-full h-full mx-auto p-36 bg-gray-700 rounded-lg flex align-center justify-center items-center" >
+  <p class="text-gray-300 md:whitespace-nowrap font-semibold" id="error-message">${msg}</p>
+  </div>`;
+  console.log("I got called");
+  if (relatedArtists.length <= 0) {
+    console.log("But i did not get in here");
+    artistsContainer.innerHTML = "";
+    artistsContainer.innerHTML += message;
+    // errorContainer.style.display = "flex";
+  }
+};
 const insertRelatedArtists = (artists) => {
   artistsContainer.innerHTML = "";
   artists.forEach((artist) => {
@@ -40,6 +55,14 @@ const searchArtist = (artist) => {
   })
     .then((response) => {
       //   console.log(response);
+      if (!response.data.artists.items) console.log("I am not in there");
+      if (response.data.artists.items.length <= 0) {
+        console.log("I am in here");
+        relatedArtists = [];
+        console.log(relatedArtists);
+        displayMessage("no artists found with that name");
+        return;
+      }
       artistId = response.data.artists.items[0].id;
       console.log(artistId);
       axios({
@@ -53,25 +76,24 @@ const searchArtist = (artist) => {
         },
       })
         .then((response) => {
-            var responseArray = response.data.artists
-            console.log(responseArray.length)
-            responseArray.forEach((artist, index) => {
-            if(artist.images[1]) return;
-            else  responseArray.splice(index, 1)
-          })
-          console.log(responseArray.length)
+          var responseArray = response.data.artists;
+          console.log(responseArray.length);
+          responseArray.forEach((artist, index) => {
+            if (artist.images[1]) return;
+            else responseArray.splice(index, 1);
+          });
+          console.log(responseArray.length);
 
           relatedArtists = [];
           relatedArtists = responseArray.map((artist) => {
-          if(artist.images[1].url){
-
+            if (artist.images[1].url) {
               const newArtist = {
                 name: artist.name,
                 image: artist.images[1].url,
                 followers: artist.followers.total,
               };
               return newArtist;
-          } else return;
+            } else return;
           });
           console.log(relatedArtists);
           insertRelatedArtists(relatedArtists);
@@ -116,16 +138,8 @@ const checkCode = () => {
   window.history.pushState({}, null, "/");
 };
 
-search.addEventListener("click", (evt) => {
-  evt.preventDefault();
-  if (input.value) {
-    const artist = input.value;
-    artist.replace(" ", "");
-    searchArtist(artist);
-  }
-});
-search.addEventListener("enter", (evt) => {
-  evt.preventDefault();
+search.addEventListener("click", (event) => {
+  event.preventDefault();
   if (input.value) {
     const artist = input.value;
     artist.replace(" ", "");
@@ -133,4 +147,13 @@ search.addEventListener("enter", (evt) => {
   }
 });
 
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (input.value) {
+    const artist = input.value;
+    artist.replace(" ", "");
+    searchArtist(artist);
+  }
+});
+displayMessage("Discover new artitsts");
 body.onLoad = checkCode();
