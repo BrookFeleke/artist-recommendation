@@ -157,7 +157,7 @@ form.addEventListener("submit", (event) => {
     searchArtist(artist);
   }
 });
-
+   
 
 displayMessage("Discover new artitsts");
 body.onLoad = checkCode();
